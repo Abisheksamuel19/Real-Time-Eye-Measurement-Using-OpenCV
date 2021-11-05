@@ -1,0 +1,73 @@
+import cv2
+import numpy as np
+import dlib
+import math
+
+cap = cv2.VideoCapture(0)
+
+detector = dlib.get_frontal_face_detector()
+predictor = dlib.shape_predictor("F:\\shape_predictor_68_face_landmarks.dat")
+
+def midpoint(p1 ,p2):
+    return int((p1.x + p2.x)/2), int((p1.y + p2.y)/2)
+
+while True:
+    _, frame = cap.read()
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    faces = detector(gray)
+    for face in faces:
+#LEFT EYE
+        landmarks = predictor(gray, face)
+        left_point = (landmarks.part(36).x, landmarks.part(36).y)
+        right_point = (landmarks.part(39).x, landmarks.part(39).y)
+        center_top = midpoint(landmarks.part(37), landmarks.part(38))
+        center_bottom = midpoint(landmarks.part(41), landmarks.part(40))
+
+#LENGTH OF LEFT EYE
+        p1=left_point
+        p2=right_point
+        length = math.sqrt( ((int(p1[0])-int(p2[0]))**2)+((int(p1[1])-int(p2[1]))**2) )
+        print("Length of left eye is  : ",length)
+#BREATH OF LEFT EYE
+        p3=center_top
+        p4= center_bottom
+        breath= math.sqrt( ((int(p3[0])-int(p4[0]))**2)+((int(p3[1])-int(p4[1]))**2) )
+        print("Breath of left eye is  : ",breath)
+
+
+        hor_line = cv2.line(frame, left_point, right_point, (0, 255, 0), 2)
+        ver_line = cv2.line(frame, center_top, center_bottom, (0, 255, 0), 2)
+
+
+#RIGHT EYE
+        landmarks = predictor(gray, face)
+        left_point = (landmarks.part(42).x, landmarks.part(42).y)
+        right_point = (landmarks.part(45).x, landmarks.part(45).y)
+        center_bottom = midpoint(landmarks.part(43), landmarks.part(44))
+        center_top = midpoint(landmarks.part(47), landmarks.part(46))
+
+        hor_line = cv2.line(frame, left_point, right_point, (0, 255, 0), 2)
+        ver_line = cv2.line(frame, center_top, center_bottom, (0, 255, 0), 2)
+
+#TOTAL LENGTH FROM LEFT EYE TO RIGHT EYE
+        landmarks = predictor(gray, face)
+        left_point = (landmarks.part(36).x, landmarks.part(36).y)
+        right_point = (landmarks.part(45).x, landmarks.part(45).y)
+        hor_line = cv2.line(frame, left_point, right_point, (0, 0, 255), 2)
+
+# Python code to find Euclidean distance
+        point1 = np.array((landmarks.part(36).x, landmarks.part(36).y))
+        point2 = np.array((landmarks.part(45).x, landmarks.part(45).y))
+        dist = np.linalg.norm(point1 - point2)
+# printing Euclidean distance
+        print("Total length from left eye to right eye is  : ",dist)
+        print("******************************************")
+    cv2.imshow("Frame", frame)
+
+    key = cv2.waitKey(1)
+    if key == 27:
+        break
+
+cap.release()
+cv2.destroyAllWindows()
